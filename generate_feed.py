@@ -3,7 +3,7 @@ import json
 import requests
 from feedgen.feed import FeedGenerator
 from bs4 import BeautifulSoup
-from src.cleaner import clean_html
+from src.html_cleaner import clean_html
 
 # ---------------------------------------------------
 # Load configuration

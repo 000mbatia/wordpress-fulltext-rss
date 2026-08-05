@@ -1,8 +1,20 @@
+from datetime import datetime, UTC
 import json
 import requests
+from feedgen.feed import FeedGenerator
+from bs4 import BeautifulSoup
+from src.cleaner import clean_html
+
+# ---------------------------------------------------
+# Load configuration
+# ---------------------------------------------------
 
 with open("config.json", encoding="utf-8") as f:
     config = json.load(f)
+
+# ---------------------------------------------------
+# Download posts
+# ---------------------------------------------------
 
 url = (
     f"{config['site']}/wp-json/wp/v2/posts"
@@ -10,21 +22,59 @@ url = (
 )
 
 headers = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/138.0.0.0 Safari/537.36"
-    ),
-    "Accept": "application/json"
+    "User-Agent": "WordPress FullText RSS Generator"
 }
 
-response = requests.get(url, headers=headers)
+response = requests.get(url, headers=headers, timeout=30)
+response.raise_for_status()
 
-print("Status:", response.status_code)
+posts = response.json()
 
-print("\nHeaders:")
-for k, v in response.headers.items():
-    print(f"{k}: {v}")
+print(f"Retrieved {len(posts)} posts")
 
-print("\nBody:")
-print(response.text[:2000])
+# ---------------------------------------------------
+# Create RSS Feed
+# ---------------------------------------------------
+
+fg = FeedGenerator()
+
+fg.title(config["title"])
+fg.description(config["description"])
+fg.link(href=config["site"])
+fg.language("en")
+
+for post in posts:
+
+    title = BeautifulSoup(
+        post["title"]["rendered"],
+        "html.parser"
+    ).get_text()
+
+    content = clean_html(post["content"]["rendered"])
+
+    entry = fg.add_entry()
+
+    entry.guid(post["link"], permalink=True)
+    entry.title(title)
+    entry.link(href=post["link"])
+
+    # FULL ARTICLE
+    entry.content(content, type="CDATA")
+
+    published = datetime.fromisoformat(post["date_gmt"]).replace(tzinfo=UTC)
+
+    entry.pubDate(published)
+
+# ---------------------------------------------------
+# Save
+# ---------------------------------------------------
+
+from pathlib import Path
+
+# Create the output directory if it doesn't exist
+Path("output").mkdir(exist_ok=True)
+
+# Save the RSS feed
+fg.rss_file("output/feed.xml")
+
+print("feed.xml generated successfully!")

@@ -1,1 +1,12 @@
+{
+    "site": "https://bikozulu.co.ke",
+    "title": "Biko Zulu",
+    "description": "Full-text RSS feed generated from the WordPress REST API",
+    "posts_to_keep": 30,
 
+    "feed": {
+        "language": "en",
+        "copyright": "Copyright belongs to the original author.",
+        "generator": "wordpress-fulltext-rss"
+    }
+}

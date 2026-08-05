@@ -49,7 +49,7 @@ python generate_feed.py
 The generated feed is written to:
 
 ```
-output/feed.xml
+docs/feed.xml
 ```
 
 ## Planned Improvements

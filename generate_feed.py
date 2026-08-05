@@ -71,10 +71,9 @@ for post in posts:
 
 from pathlib import Path
 
-# Create the output directory if it doesn't exist
-Path("output").mkdir(exist_ok=True)
+output = Path(config["output_folder"])
+output.mkdir(exist_ok=True)
 
-# Save the RSS feed
-fg.rss_file("output/feed.xml")
+fg.rss_file(output / "feed.xml")
 
 print("feed.xml generated successfully!")
